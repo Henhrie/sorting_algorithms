@@ -1,98 +1,69 @@
 #include "sort.h"
 
-void swap_node_ahead(listint_t **list, listint_t **tail, listint_t **shaker);
-void swap_node_behind(listint_t **list, listint_t **tail, listint_t **shaker);
-void cocktail_sort_list(listint_t **list);
-
 /**
- * swap_node_ahead - Swap a node in a listint_t doubly-linked list
- *                   list of integers with the node ahead of it.
- * @list: A pointer to the head of a doubly-linked list of integers.
- * @tail: A pointer to the tail of the doubly-linked list.
- * @shaker: A pointer to the current swapping node of the cocktail shaker algo.
+ * get_max - Get the maximum value in an array of integers.
+ * @array: An array of integers.
+ * @size: The size of the array.
+ *
+ * Return: The maximum integer in the array.
  */
-void swap_node_ahead(listint_t **list, listint_t **tail, listint_t **shaker)
+int get_max(int *array, int size)
 {
-	listint_t *tmp = (*shaker)->next;
+	int max, i;
 
-	if ((*shaker)->prev != NULL)
-		(*shaker)->prev->next = tmp;
-	else
-		*list = tmp;
-	tmp->prev = (*shaker)->prev;
-	(*shaker)->next = tmp->next;
-	if (tmp->next != NULL)
-		tmp->next->prev = *shaker;
-	else
-		*tail = *shaker;
-	(*shaker)->prev = tmp;
-	tmp->next = *shaker;
-	*shaker = tmp;
+	for (max = array[0], i = 1; i < size; i++)
+	{
+		if (array[i] > max)
+			max = array[i];
+	}
+
+	return (max);
 }
 
 /**
- * swap_node_behind - Swap a node in a listint_t doubly-linked
- *                    list of integers with the node behind it.
- * @list: A pointer to the head of a doubly-linked list of integers.
- * @tail: A pointer to the tail of the doubly-linked list.
- * @shaker: A pointer to the current swapping node of the cocktail shaker algo.
+ * counting_sort - Sort an array of integers in ascending order
+ * using the counting sort algorithm.
+ * 
+ * @array: An array of integers.
+ * @size: The size of the array.
+ *
+ * Description: Prints the counting array after setting it up.
  */
-void swap_node_behind(listint_t **list, listint_t **tail, listint_t **shaker)
+void counting_sort(int *array, size_t size)
 {
-	listint_t *tmp = (*shaker)->prev;
+	int *count, *sorted, max, i;
 
-	if ((*shaker)->next != NULL)
-		(*shaker)->next->prev = tmp;
-	else
-		*tail = tmp;
-	tmp->next = (*shaker)->next;
-	(*shaker)->prev = tmp->prev;
-	if (tmp->prev != NULL)
-		tmp->prev->next = *shaker;
-	else
-		*list = *shaker;
-	(*shaker)->next = tmp;
-	tmp->prev = *shaker;
-	*shaker = tmp;
-}
-
-/**
- * cocktail_sort_list - Sort a listint_t doubly-linked list of integers in
- *                      ascending order using the cocktail shaker algorithm.
- * @list: A pointer to the head of a listint_t doubly-linked list.
- */
-void cocktail_sort_list(listint_t **list)
-{
-	listint_t *tail, *shaker;
-	bool shaken_not_stirred = false;
-
-	if (list == NULL || *list == NULL || (*list)->next == NULL)
+	if (array == NULL || size < 2)
 		return;
 
-	for (tail = *list; tail->next != NULL;)
-		tail = tail->next;
-
-	while (shaken_not_stirred == false)
+	sorted = malloc(sizeof(int) * size);
+	if (sorted == NULL)
+		return;
+	max = get_max(array, size);
+	count = malloc(sizeof(int) * (max + 1));
+	if (count == NULL)
 	{
-		shaken_not_stirred = true;
-		for (shaker = *list; shaker != tail; shaker = shaker->next)
-		{
-			if (shaker->n > shaker->next->n)
-			{
-				swap_node_ahead(list, &tail, &shaker);
-				print_list((const listint_t *)*list);
-				shaken_not_stirred = false;
-			}
-		}
-		for (shaker = shaker->prev; shaker != *list;
-				shaker = shaker->prev)
-		{
-			if (shaker->n < shaker->prev->n)
-			{
-				swap_node_behind(list, &tail, &shaker);
-				print_list((const listint_t *)*list);
-				shaken_not_stirred = false;
-			}
-		}
+		free(sorted);
+		return;
 	}
+
+	for (i = 0; i < (max + 1); i++)
+		count[i] = 0;
+	for (i = 0; i < (int)size; i++)
+		count[array[i]] += 1;
+	for (i = 0; i < (max + 1); i++)
+		count[i] += count[i - 1];
+	print_array(count, max + 1);
+
+	for (i = 0; i < (int)size; i++)
+	{
+		sorted[count[array[i]] - 1] = array[i];
+		count[array[i]] -= 1;
+	}
+
+	for (i = 0; i < (int)size; i++)
+		array[i] = sorted[i];
+
+	free(sorted);
+	free(count);
 }
